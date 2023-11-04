@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: typescript-node
+    ports:
+      - 3000:3000
+    networks:
+      - baxi_mfs
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    networks:
+      - baxi_mfs
+    volumes:
+      - /data/db/mongo
+
+networks:
+  baxi_mfs:
+    driver: bridge
