@@ -13,19 +13,15 @@ volumes:
     driver: local
   logstashdata01:
     driver: local
-  grafana:
+  grafanadata:
     driver: local
   db:
     driver: local
 
 networks:
-  baxi_mfs:
-    driver: bridge
-
-# networks:
-#   default:
-#     name: baxi_mfs
-#     external: false
+  default:
+    name: baxi_mfs
+    external: false
 
 services:
   setup:
@@ -145,6 +141,7 @@ services:
     volumes:
       - certs:/usr/share/kibana/config/certs
       - kibanadata:/usr/share/kibana/data
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     ports:
       - ${KIBANA_PORT}:5601
     environment:
@@ -156,6 +153,7 @@ services:
       - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - ELASTIC_APM_SECRET_TOKEN=${ELASTIC_APM_SECRET_TOKEN}
     mem_limit: ${KB_MEM_LIMIT}
     healthcheck:
       test:
@@ -176,18 +174,17 @@ services:
     labels:
       co.logs/module: grafana
     environment:
-      # - GF_SECURITY_ADMIN_USER=admin
+      # - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
       # - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-      # - GF_USERS_ALLOW_SIGN_UP=false
-      # - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+      - GRAFANA_HOSTS=http://grafana:${GRAFANA_PORT}
+      - GF_USERS_ALLOW_SIGN_UP=true
+      - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
     volumes:
-      - grafana:/var/lib/grafana
+      - grafanadata:/var/lib/grafana
       - ./provisioning:/etc/grafana/provisioning:ro
-      # - ./config/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana.ini:/etc/grafana/grafana.ini
     user: "0"
-    # networks:
-    #  - baxi_mfs
     ports:
       - ${GRAFANA_PORT}:3000
 
@@ -196,22 +193,24 @@ services:
     restart: always
     ports:
       - 27017:27017
-    networks:
-      - baxi_mfs
     volumes:
       - db:/data/db/mongo
 
-  web:
+  webapp:
     build:
       context: app
       dockerfile: Dockerfile
     image: typescript-node
+    volumes:
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
+      - "/proc:/hostfs/proc:ro"
+      - "/:/hostfs:ro"
     ports:
       - 8080:8080
     environment:
       - MONGODB_URI_LOCAL=mongodb://mongo:27017/<database>
-    networks:
-      - baxi_mfs
     depends_on:
       - mongo
         # condition: service_healthy # Specify that the 'web' service depends on the 'mongo' service
@@ -238,6 +237,7 @@ services:
       - ELASTIC_HOSTS=https://es01:9200
       - KIBANA_HOSTS=http://kibana:5601
       - LOGSTASH_HOSTS=http://logstash01:9600
+      - GRAFANA_HOSTS=http://grafana:${GRAFANA_PORT}
 
   filebeat01:
     depends_on:
@@ -279,3 +279,43 @@ services:
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTIC_HOSTS=https://es01:9200
+
+  # fleet-server:
+  #   depends_on:
+  #     kibana:
+  #       condition: service_healthy
+  #     es01:
+  #       condition: service_healthy
+  #   image: docker.elastic.co/beats/elastic-agent:${STACK_VERSION}
+  #   volumes:
+  #     - certs:/certs
+  #     - fleetserverdata:/usr/share/elastic-agent
+  #     - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #     - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
+  #     - "/proc:/hostfs/proc:ro"
+  #     - "/:/hostfs:ro"
+  #   ports:
+  #     - ${FLEET_PORT}:8220
+  #     - ${APMSERVER_PORT}:8200
+  #   user: root
+  #   environment:
+  #     - SSL_CERTIFICATE_AUTHORITIES=/certs/ca/ca.crt
+  #     - CERTIFICATE_AUTHORITIES=/certs/ca/ca.crt
+  #     - FLEET_CA=/certs/ca/ca.crt
+  #     - FLEET_ENROLL=1
+  #     - FLEET_INSECURE=true
+  #     - FLEET_SERVER_ELASTICSEARCH_CA=/certs/ca/ca.crt
+  #     - FLEET_SERVER_ELASTICSEARCH_HOST=https://es01:9200
+  #     - FLEET_SERVER_ELASTICSEARCH_INSECURE=true
+  #     - FLEET_SERVER_ENABLE=1
+  #     - FLEET_SERVER_CERT=/certs/fleet-server/fleet-server.crt
+  #     - FLEET_SERVER_CERT_KEY=/certs/fleet-server/fleet-server.key
+  #     - FLEET_SERVER_INSECURE_HTTP=true
+  #     - FLEET_SERVER_POLICY_ID=fleet-server-policy
+  #     - FLEET_URL=https://fleet-server:8220
+  #     - KIBANA_FLEET_CA=/certs/ca/ca.crt
+  #     - KIBANA_FLEET_SETUP=1
+  #     - KIBANA_FLEET_USERNAME=elastic
+  #     - KIBANA_FLEET_PASSWORD=${ELASTIC_PASSWORD}
+  #     - KIBANA_HOST=https://kibana:5601

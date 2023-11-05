@@ -42,6 +42,18 @@ metricbeat.modules:
   period: 10s
   enabled: true
 
+- module: grafana
+  metricsets: ["server"]
+  period: 10s
+  hosts: ${GRAFANA_HOSTS} 
+  username: ${GRAFANA_USER}
+  password: ${GRAFANA_PASSWORD}
+
+- module: mongodb 
+  metricsets:
+    - status
+  hosts: ["mongodb://mongo:27017/<database>"]
+
 processors:
   - add_host_metadata: ~
   - add_docker_metadata: ~
