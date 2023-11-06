@@ -1,6 +1,16 @@
+// import "elastic-apm-node/start";
+import apm from "elastic-apm-node/start";
+
+apm.start({
+    // Add your APM configuration options here.
+    // For example:
+    serviceName: "typescript-app",
+    serverUrl: "http://localhost:8200",
+});
+
 import errorHandler from "errorhandler";
 import app from "./app";
-
+// Import the APM module using CommonJS-style require.
 
 /**
  * Error Handler. Provides full stack

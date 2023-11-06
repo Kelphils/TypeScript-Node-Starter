@@ -3,8 +3,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// import "elastic-apm-node/start";
+const start_1 = __importDefault(require("elastic-apm-node/start"));
+start_1.default.start({
+    // Add your APM configuration options here.
+    // For example:
+    serviceName: "typescript-app",
+    serverUrl: "http://localhost:8200",
+});
 const errorhandler_1 = __importDefault(require("errorhandler"));
 const app_1 = __importDefault(require("./app"));
+// Import the APM module using CommonJS-style require.
 /**
  * Error Handler. Provides full stack
  */

@@ -5,6 +5,7 @@
         "allowSyntheticDefaultImports": true,
         "target": "es6",
         "noImplicitAny": true,
+        // "extends": "@tsconfig/node14/tsconfig.json",
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",

@@ -7,12 +7,11 @@ metricbeat.modules:
   xpack.enabled: true
   period: 10s
   hosts: ${ELASTIC_HOSTS}
-  ssl.certificate_authorities: "certs/ca/ca.crt"
-  ssl.certificate: "certs/es01/es01.crt"
-  ssl.key: "certs/es01/es01.key"
   username: ${ELASTIC_USER}
   password: ${ELASTIC_PASSWORD}
-  ssl.enabled: true
+  ssl:
+    enabled: true
+    certificate_authorities: ${CA_CERT}
 
 - module: logstash
   xpack.enabled: true
@@ -27,6 +26,30 @@ metricbeat.modules:
   username: ${ELASTIC_USER}
   password: ${ELASTIC_PASSWORD}
   xpack.enabled: true
+  ssl:
+    enabled: true
+    certificate_authorities: ${CA_CERT}
+
+- module: system
+  metricsets:
+    - cpu             
+    - load            
+    - memory         
+    - network         
+    - process         
+    - process_summary 
+    - uptime          
+    # - socket_summary  
+    # - core           # Per CPU core usage
+    # - diskio         
+
+  enabled: true
+  period: 10s
+  processes: ['.*']
+
+  # Configure the metric types that are included by these metricsets.
+  cpu.metrics:  ["percentages","normalized_percentages"]  # The other available option is ticks.
+  core.metrics: ["percentages"]  # The other available option is ticks.
 
 - module: docker
   metricsets:
@@ -42,17 +65,11 @@ metricbeat.modules:
   period: 10s
   enabled: true
 
-- module: grafana
-  metricsets: ["server"]
-  period: 10s
-  hosts: ${GRAFANA_HOSTS} 
-  username: ${GRAFANA_USER}
-  password: ${GRAFANA_PASSWORD}
-
 - module: mongodb 
-  metricsets:
-    - status
-  hosts: ["mongodb://mongo:27017/<database>"]
+  metricsets: ["dbstats", "status", "collstats", "metrics", "replstatus"]
+  period: 10s
+  enabled: true
+  hosts: [ "${MONGODB_URI_LOCAL}", "localhost:27017"]
 
 processors:
   - add_host_metadata: ~
@@ -63,6 +80,5 @@ output.elasticsearch:
   username: ${ELASTIC_USER}
   password: ${ELASTIC_PASSWORD}
   ssl:
-    certificate: "certs/es01/es01.crt"
-    certificate_authorities: "certs/ca/ca.crt"
-    key: "certs/es01/es01.key"
+    enabled: true
+    certificate_authorities: ${CA_CERT}
