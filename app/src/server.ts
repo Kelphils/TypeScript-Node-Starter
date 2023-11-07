@@ -1,9 +1,11 @@
 // import "elastic-apm-node/start";
-import apm from "elastic-apm-node/start";
+import { SECRET_TOKEN } from "./util/secrets";
+import apm from "elastic-apm-node";
 
 apm.start({
     // Add your APM configuration options here.
     // For example:
+    secretToken: SECRET_TOKEN,
     serviceName: "typescript-app",
     serverUrl: "http://localhost:8200",
 });

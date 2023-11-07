@@ -7,11 +7,12 @@ metricbeat.modules:
   xpack.enabled: true
   period: 10s
   hosts: ${ELASTIC_HOSTS}
+  ssl.certificate_authorities: "certs/ca/ca.crt"
+  ssl.certificate: "certs/es01/es01.crt"
+  ssl.key: "certs/es01/es01.key"
   username: ${ELASTIC_USER}
   password: ${ELASTIC_PASSWORD}
-  ssl:
-    enabled: true
-    certificate_authorities: ${CA_CERT}
+  ssl.enabled: true
 
 - module: logstash
   xpack.enabled: true
@@ -22,13 +23,14 @@ metricbeat.modules:
   metricsets: 
     - stats
   period: 10s
+  ssl.certificate_authorities: "certs/ca/ca.crt"
+  ssl.certificate: "certs/kibana/kibana.crt"
+  ssl.key: "certs/kibana/kibana.key"
   hosts: ${KIBANA_HOSTS}
   username: ${ELASTIC_USER}
   password: ${ELASTIC_PASSWORD}
   xpack.enabled: true
-  ssl:
-    enabled: true
-    certificate_authorities: ${CA_CERT}
+  ssl.enabled: true
 
 - module: system
   metricsets:
@@ -69,7 +71,7 @@ metricbeat.modules:
   metricsets: ["dbstats", "status", "collstats", "metrics", "replstatus"]
   period: 10s
   enabled: true
-  hosts: [ "${MONGODB_URI_LOCAL}", "localhost:27017"]
+  hosts: [ "localhost:27017"]
 
 processors:
   - add_host_metadata: ~
@@ -80,5 +82,6 @@ output.elasticsearch:
   username: ${ELASTIC_USER}
   password: ${ELASTIC_PASSWORD}
   ssl:
-    enabled: true
-    certificate_authorities: ${CA_CERT}
+    certificate: "certs/es01/es01.crt"
+    certificate_authorities: "certs/ca/ca.crt"
+    key: "certs/es01/es01.key"

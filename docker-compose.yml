@@ -3,7 +3,7 @@ version: "3.8"
 volumes:
   certs:
     driver: local
-  esdata:
+  esdata01:
     driver: local
   kibanadata:
     driver: local
@@ -22,8 +22,12 @@ volumes:
 
 networks:
   default:
-    name: baxi_mfs
+    name: baxi-mfs
     external: false
+
+# networks:
+#   mfs:
+#     driver: bridge
 
 services:
   setup:
@@ -31,6 +35,7 @@ services:
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
     user: "0"
+
     command: >
       bash -c '
         if [ x${ELASTIC_PASSWORD} == x ]; then
@@ -96,7 +101,8 @@ services:
       co.elastic.logs/module: elasticsearch
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
-      - esdata:/usr/share/elasticsearch/data
+      - esdata01:/usr/share/elasticsearch/data
+
     ports:
       - ${ES_PORT}:9200
     environment:
@@ -108,13 +114,16 @@ services:
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
       - xpack.security.http.ssl.key=certs/es01/es01.key
+      - xpack.security.authc.api_key.enabled=true
       - xpack.security.http.ssl.certificate=certs/es01/es01.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+      # - xpack.security.http.ssl.client_authentication=optional
       - xpack.security.transport.ssl.enabled=true
       - xpack.security.transport.ssl.key=certs/es01/es01.key
       - xpack.security.transport.ssl.certificate=certs/es01/es01.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.client_authentication=optional
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${ES_MEM_LIMIT}
     ulimits:
@@ -142,6 +151,7 @@ services:
       - certs:/usr/share/kibana/config/certs
       - kibanadata:/usr/share/kibana/data
       - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+
     ports:
       - ${KIBANA_PORT}:5601
     environment:
@@ -169,6 +179,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+
   grafana:
     depends_on:
       es01:
@@ -183,6 +194,9 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=true
       - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+
     volumes:
       - grafanadata:/var/lib/grafana
       - ./provisioning:/etc/grafana/provisioning:ro
@@ -216,6 +230,7 @@ services:
       - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
       - "/proc:/hostfs/proc:ro"
       - "/:/hostfs:ro"
+
     environment:
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
@@ -243,6 +258,7 @@ services:
       - "./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
     environment:
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
@@ -267,6 +283,7 @@ services:
       - logstashdata01:/usr/share/logstash/data
       - "./logstash_ingest_data/:/usr/share/logstash/ingest_data/"
       - "./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
+
     environment:
       - xpack.monitoring.enabled=false
       - ELASTIC_USER=elastic
@@ -281,13 +298,15 @@ services:
         condition: service_healthy
     image: docker.elastic.co/beats/elastic-agent:${STACK_VERSION}
     volumes:
-      - certs:/certs
+      - certs:/certs:z
       - fleetserverdata:/usr/share/elastic-agent
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
       - "/proc:/hostfs/proc:ro"
       - "/:/hostfs:ro"
+
+    restart: always
     ports:
       - ${FLEET_PORT}:8220
       - ${APMSERVER_PORT}:8200
@@ -334,10 +353,12 @@ services:
       - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
       - "/proc:/hostfs/proc:ro"
       - "/:/hostfs:ro"
+
     ports:
       - 8080:8080
     environment:
       - MONGODB_URI_LOCAL=mongodb://mongo:27017/<database>
+      - SECRET_TOKEN=$ELASTIC_APM_SECRET_TOKEN
     depends_on:
       fleet-server:
         condition: service_healthy
@@ -350,6 +371,7 @@ services:
         condition: service_healthy
     image: mongo
     restart: always
+
     ports:
       - 27017:27017
     volumes:

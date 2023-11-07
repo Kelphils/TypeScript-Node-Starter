@@ -4,10 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // import "elastic-apm-node/start";
-const start_1 = __importDefault(require("elastic-apm-node/start"));
-start_1.default.start({
+const secrets_1 = require("./util/secrets");
+const elastic_apm_node_1 = __importDefault(require("elastic-apm-node"));
+elastic_apm_node_1.default.start({
     // Add your APM configuration options here.
     // For example:
+    secretToken: secrets_1.SECRET_TOKEN,
     serviceName: "typescript-app",
     serverUrl: "http://localhost:8200",
 });
