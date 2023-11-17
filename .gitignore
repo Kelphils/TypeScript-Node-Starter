@@ -39,3 +39,7 @@ dist/**/*
 
 # ignore yarn.lock
 yarn.lock
+
+# ignore elk stack ingest data
+filebeat_ingest_data/
+logstash_ingest_data/

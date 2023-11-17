@@ -7,7 +7,8 @@ apm.start({
     // For example:
     secretToken: SECRET_TOKEN,
     serviceName: "typescript-app",
-    serverUrl: "http://localhost:8200",
+    serverUrl: "http://ecp-fleet-server:8200",
+    logLevel: "debug"
 });
 
 import errorHandler from "errorhandler";

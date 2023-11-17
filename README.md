@@ -39,15 +39,18 @@ To build and run this app locally you will need a few things:
 # Getting started
 - Clone the repository
 ```
-git clone --depth=1 https://github.com/Microsoft/TypeScript-Node-Starter.git <project_name>
+git clone --depth=1 https://github.com/Kelphils/TypeScript-Node-Starter.git <project_name>
 ```
 - Install dependencies
 ```
-cd <project_name>
+cd <project_name>/app
 npm install
 ```
 - Configure your mongoDB server
 ```bash
+
+# make sure that the fleetserver for elastic apm node agent is running or # comment out the apm start logic on the file /app/src/server.ts
+
 # create the db directory
 sudo mkdir -p /data/db
 # give the db correct read/write permissions

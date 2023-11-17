@@ -5,16 +5,20 @@ datasources:
   - name: Elasticsearch
     type: elasticsearch
     access: proxy
-    url: https://localhost:9200
+    url: ${ELASTIC_HOSTS}
     basicAuth: true
     basicAuthUser: ${ELASTIC_USER}
     basicAuthPassword: ${ELASTIC_PASSWORD}
     isDefault: false
     jsonData:
-      index: '[metrics-]YYYY.MM.DD'
-      interval: Daily
+      index: '.ds-metricbeat-*'
+      tlsSkipVerify: true
+      # interval: Daily
       timeField: "@timestamp"
       maxConcurrentShardRequests: 5
+      tlsAuthWithCACert: true
+    secureJsonData:
+      tlsCaCert: ${CA_CERT}
       xpack: true
     readOnly: false
       
