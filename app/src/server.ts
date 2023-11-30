@@ -7,7 +7,9 @@ apm.start({
     // For example:
     secretToken: SECRET_TOKEN,
     serviceName: "typescript-app",
+    verifyServerCert: false,
     serverUrl: "http://ecp-fleet-server:8200",
+    // serverUrl: "http:localhost:8200",
     logLevel: "debug"
 });
 

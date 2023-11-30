@@ -49,7 +49,8 @@ npm install
 - Configure your mongoDB server
 ```bash
 
-# make sure that the fleetserver for elastic apm node agent is running or # comment out the apm start logic on the file /app/src/server.ts
+# make sure that the fleetserver for elastic apm node agent is running or 
+# comment out the apm start logic on the file /app/src/server.ts
 
 # create the db directory
 sudo mkdir -p /data/db

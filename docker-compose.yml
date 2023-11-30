@@ -106,6 +106,9 @@ services:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 200000
+        hard: 200000
     healthcheck:
       test:
         [
@@ -119,6 +122,8 @@ services:
   kibana:
     depends_on:
       elasticsearch:
+        condition: service_healthy
+      setup:
         condition: service_healthy
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
     container_name: ecp-kibana
@@ -178,7 +183,7 @@ services:
     volumes:
       - certs:/usr/share/grafana/certs:z
       - grafanadata:/var/lib/grafana
-      # - ./provisioning:/etc/grafana/provisioning:ro
+      - ./provisioning:/etc/grafana/provisioning:ro
       - ./config/grafana.ini:/etc/grafana/grafana.ini
     user: root
     ports:
@@ -233,7 +238,7 @@ services:
           "CMD-SHELL",
           "curl -I -s http://localhost:8200/ | grep -q 'HTTP/1.1 200 OK'",
         ]
-      interval: 20s
+      interval: 25s
       timeout: 10s
       retries: 5
       start_period: 75s
@@ -292,6 +297,7 @@ services:
       - KIBANA_HOSTS=https://ecp-kibana:5601
       - LOGSTASH_HOSTS=http://ecp-logstash:9600
       - CA_CERT=certs/ca/ca.crt
+        # -e flag to log to stderr and disable syslog/file output
     command: -strict.perms=false
 
   logstash:
@@ -359,7 +365,7 @@ services:
       - 8080:8080
     environment:
       - MONGODB_URI_LOCAL=mongodb://mongo:27017/baxi-mfs
-      # - SECRET_TOKEN=${ELASTIC_APM_SECRET_TOKEN}
+      - SECRET_TOKEN=${ELASTIC_APM_SECRET_TOKEN}
 
 volumes:
   certs:

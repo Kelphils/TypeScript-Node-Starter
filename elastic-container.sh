@@ -141,12 +141,12 @@ case "${ACTION}" in
 
   echo "Starting Elastic Stack network and containers."
 
-  ${COMPOSE} up -d --build webapp --force-recreate # --no-deps 
+  ${COMPOSE} up -d --force-recreate # --no-deps 
 
-  echo "Waiting 10 seconds for Fleet Server setup."
+  echo "Waiting 15 seconds for Fleet Server setup."
   echo
 
-  sleep 10
+  sleep 15
 
   # echo "Populating Grafana Trusted CA"
   # set_es_cert_to_grafana_trusted_ca_cert 

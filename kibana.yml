@@ -3,6 +3,7 @@ elastic:
     active: true
     serverUrl: "http://ecp-fleet-server:8200"
     secretToken: ${ELASTIC_APM_SECRET_TOKEN}
+
 server.host: "0.0.0.0"
 telemetry.enabled: "true"
 xpack.fleet.packages:
@@ -17,6 +18,8 @@ xpack.fleet.packages:
 xpack.fleet.agentPolicies:
   - name: Fleet-Server-Policy
     id: fleet-server-policy
+    is_default_fleet_server: true
+    is_managed: false
     namespace: default
     monitoring_enabled: 
       - logs
@@ -42,5 +45,4 @@ xpack.fleet.agentPolicies:
             value: 0.0.0.0:8200
           - name: secret_token
             value: ${ELASTIC_APM_SECRET_TOKEN}
-
 

@@ -8,17 +8,18 @@ datasources:
     url: ${ELASTIC_HOSTS}
     basicAuth: true
     basicAuthUser: ${ELASTIC_USER}
-    basicAuthPassword: ${ELASTIC_PASSWORD}
-    isDefault: false
+    # basicAuthPassword: ${ELASTIC_PASSWORD}
+    isDefault: true
     jsonData:
       index: '.ds-metricbeat-*'
       tlsSkipVerify: true
-      # interval: Daily
+      timeInterval: "10s"
       timeField: "@timestamp"
       maxConcurrentShardRequests: 5
-      tlsAuthWithCACert: true
+      tlsAuthWithCACert: true # not working when enabled with ${CA_CERT}
     secureJsonData:
-      tlsCaCert: ${CA_CERT}
+      tlsCaCert: ${CA_CERT} # not working with tlsSkipVerify: false
+      basicAuthPassword: ${ELASTIC_PASSWORD}
       xpack: true
     readOnly: false
-      
+    
